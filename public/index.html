@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control de Aspirantes · UNES</title>
+  <meta name="description" content="Carga, actualización y reporte de los datos de aspirantes por núcleo y semana.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="salto" href="#tabla">Saltar a la tabla</a>
+
+  <header class="topbar no-print">
+    <div class="brand">
+      <img class="brand-logo" src="assets/unes.png" alt="UNES · Universidad Nacional Experimental de la Seguridad">
+      <div class="brand-text">
+        <h1>Control de Aspirantes</h1>
+        <p id="brandSub">Universidad Nacional Experimental de la Seguridad</p>
+      </div>
+    </div>
+
+    <div class="topbar-meta">
+      <button class="chip" id="chipProceso" type="button" title="Editar datos del reporte">PROCESO ENERO I-2027</button>
+      <button class="chip chip-suave" id="chipFecha" type="button" title="Editar datos del reporte">06/11/2026</button>
+      <span class="save-state" id="saveState" data-estado="guardado"><i></i><span>Guardado</span></span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="btn" id="btnImportar" type="button">Importar</button>
+      <button class="btn" id="btnExportarCSV" type="button">CSV</button>
+      <button class="btn" id="btnExportarJSON" type="button">JSON</button>
+      <button class="btn btn-primario" id="btnImprimir" type="button">Imprimir reporte</button>
+    </div>
+  </header>
+
+  <section class="barra-semana no-print" aria-label="Filtro por semana">
+    <div class="barra-semana-info">
+      <label class="selector-semana" for="filtroSemana">
+        <span>Semana</span>
+        <select id="filtroSemana" aria-label="Filtrar por semana"></select>
+      </label>
+      <span class="semana-nota" id="semanaNota"></span>
+    </div>
+    <button class="btn btn-primario" id="btnNuevaSemana" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      Nueva semana
+    </button>
+  </section>
+
+  <nav class="tabs no-print" id="tabs" role="tablist" aria-label="Secciones de la aplicación">
+    <button class="tab activo" type="button" role="tab" id="tab-resumen" aria-controls="panel-resumen" aria-selected="true" data-tab="resumen">Resumen</button>
+    <button class="tab" type="button" role="tab" id="tab-pruebas" aria-controls="panel-pruebas" aria-selected="false" data-tab="pruebas">Pruebas por sexo</button>
+    <button class="tab" type="button" role="tab" id="tab-nucleos" aria-controls="panel-nucleos" aria-selected="false" data-tab="nucleos">Núcleos</button>
+    <button class="tab" type="button" role="tab" id="tab-mapa" aria-controls="panel-mapa" aria-selected="false" data-tab="mapa">Mapa de Venezuela</button>
+    <button class="tab" type="button" role="tab" id="tab-validacion" aria-controls="panel-validacion" aria-selected="false" data-tab="validacion">Validación</button>
+    <button class="tab" type="button" role="tab" id="tab-capacidad" aria-controls="panel-capacidad" aria-selected="false" data-tab="capacidad">Capacidad</button>
+  </nav>
+
+  <main>
+    <section class="print-only cabecera-impresion" aria-hidden="true">
+      <h1 id="impTitulo"></h1>
+      <p id="impInstitucion"></p>
+      <p id="impProceso"></p>
+    </section>
+
+    <section class="tab-panel" id="panel-resumen" data-panel="resumen" role="tabpanel" aria-labelledby="tab-resumen">
+      <section class="kpis" id="kpis" aria-label="Indicadores generales"></section>
+
+      <section class="insights">
+        <article class="card panel">
+          <header class="panel-head">
+            <div>
+              <h2>Núcleos con mayor asistencia</h2>
+              <p>Los 8 núcleos con más aspirantes evaluados en la vista actual.</p>
+            </div>
+          </header>
+          <div class="barras" id="topNucleos"></div>
+        </article>
+
+        <article class="card panel panel-donut">
+          <header class="panel-head">
+            <div>
+              <h2>Distribución por sexo</h2>
+              <p>Sobre el total de asistencias registradas.</p>
+            </div>
+          </header>
+          <div class="donut-wrap">
+            <div class="donut" id="donut" role="img" aria-label="Distribución por sexo">
+              <div class="donut-centro">
+                <strong id="donutTotal">0</strong>
+                <span>asistencias</span>
+              </div>
+            </div>
+            <ul class="leyenda" id="leyendaDonut"></ul>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-pruebas" data-panel="pruebas" role="tabpanel" aria-labelledby="tab-pruebas" hidden>
+      <section class="card panel" id="panelPruebas">
+        <header class="panel-head">
+          <div>
+            <h2>Resultados de las pruebas por sexo</h2>
+            <p>Aprobados, rechazados, evaluados y porcentaje de aprobación, discriminados entre femenino y masculino.</p>
+          </div>
+          <div class="pruebas-leyenda">
+            <span><i class="punto-femenino"></i> Femenino</span>
+            <span><i class="punto-masculino"></i> Masculino</span>
+          </div>
+        </header>
+        <div class="pruebas" id="pruebasResumen"></div>
+        <p class="nota-tabla">Cada prueba se alimenta de los campos Aprobados y Rechazados de la ficha del núcleo, separados por sexo. Los totales se recalculan automáticamente.</p>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-nucleos" data-panel="nucleos" role="tabpanel" aria-labelledby="tab-nucleos" hidden>
+      <section class="card tabla-card" id="tabla">
+        <div class="toolbar no-print">
+          <div class="buscador">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <input id="buscar" type="search" placeholder="Buscar núcleo…" autocomplete="off" aria-label="Buscar núcleo">
+          </div>
+          <label class="interruptor">
+            <input type="checkbox" id="soloAlertas">
+            <span class="interruptor-caja" aria-hidden="true"></span>
+            <span>Solo con alertas</span>
+          </label>
+          <span class="contador" id="contador"></span>
+          <div class="toolbar-espacio"></div>
+          <button class="btn" id="btnAgregar" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            Agregar núcleo
+          </button>
+        </div>
+
+        <div class="alertas no-print" id="alertas" aria-live="polite"></div>
+
+        <div class="tabla-scroll">
+          <table class="tabla" id="tablaDatos">
+            <thead>
+              <tr class="fila-grupos">
+                <th class="col-nucleo" rowspan="2" scope="col"><button type="button" data-orden="nucleo">Núcleo<span class="flecha"></span></button></th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="preinscritos">Pre-inscritos<span class="flecha"></span></button></th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="convocados">Convocados<span class="flecha"></span></button></th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="asistencia">Asistencia<span class="flecha"></span></button></th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="formalizados">Formalizados<span class="flecha"></span></button></th>
+                <th class="grupo grupo-psico" colspan="4" scope="colgroup">Prueba Psicológica</th>
+                <th class="grupo grupo-fisico" colspan="4" scope="colgroup">Prueba Física</th>
+                <th class="grupo grupo-medico" colspan="4" scope="colgroup">Prueba Médica</th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="femenino">Femenino<span class="flecha"></span></button></th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="masculino">Masculino<span class="flecha"></span></button></th>
+                <th rowspan="2" scope="col" class="col-pct">% Asist.</th>
+                <th rowspan="2" scope="col" class="col-acciones no-print"><span class="oculto">Acciones</span></th>
+              </tr>
+              <tr class="fila-subgrupos">
+                <th scope="col" class="sub grupo-psico"><button type="button" data-orden="psico_aprobados_f">Aprob. F<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-psico"><button type="button" data-orden="psico_aprobados_m">Aprob. M<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-psico"><button type="button" data-orden="psico_rechazados_f">Rech. F<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-psico fin-grupo"><button type="button" data-orden="psico_rechazados_m">Rech. M<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-fisico"><button type="button" data-orden="fisico_aprobados_f">Aprob. F<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-fisico"><button type="button" data-orden="fisico_aprobados_m">Aprob. M<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-fisico"><button type="button" data-orden="fisico_rechazados_f">Rech. F<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-fisico fin-grupo"><button type="button" data-orden="fisico_rechazados_m">Rech. M<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-medico"><button type="button" data-orden="medico_aprobados_f">Aprob. F<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-medico"><button type="button" data-orden="medico_aprobados_m">Aprob. M<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-medico"><button type="button" data-orden="medico_rechazados_f">Rech. F<span class="flecha"></span></button></th>
+                <th scope="col" class="sub grupo-medico fin-grupo"><button type="button" data-orden="medico_rechazados_m">Rech. M<span class="flecha"></span></button></th>
+              </tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+            <tfoot id="pieTabla"></tfoot>
+          </table>
+        </div>
+
+        <p class="nota-tabla no-print">Haz clic en cualquier número o nombre para editarlo, o usa el lápiz para abrir la ficha completa. Los cambios se guardan automáticamente. En la vista <strong>General</strong> la tabla es de solo lectura: selecciona una semana para editar.</p>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-mapa" data-panel="mapa" role="tabpanel" aria-labelledby="tab-mapa" hidden>
+      <section class="card panel mapa-card">
+        <header class="panel-head">
+          <div>
+            <h2>Mapa de Venezuela · convocados por estado</h2>
+            <p>Los colores representan la cantidad de convocados. Haz clic en un estado para ver sus núcleos.</p>
+          </div>
+          <div class="mapa-totales" id="mapaTotales"></div>
+        </header>
+        <div class="mapa-layout">
+          <div class="mapa-col">
+            <div class="mapa-venezuela" id="mapaVenezuela">
+              <p class="vacio">Cargando mapa…</p>
+            </div>
+            <div class="mapa-leyenda" id="mapaLeyenda"></div>
+            <div class="mapa-tooltip" id="mapaTooltip" hidden></div>
+            <div class="mapa-detalle" id="mapaDetalle" hidden></div>
+          </div>
+          <aside class="mapa-panel">
+            <div class="mapa-panel-head">
+              <h3>Convocados por estado</h3>
+              <span class="contador" id="mapaContador"></span>
+            </div>
+            <div class="mapa-lista" id="mapaLista"></div>
+          </aside>
+        </div>
+        <p class="nota-tabla">Los núcleos con nombre de subregión se agrupan en su estado: MIRANDA - BARLOVENTO, MIRANDA - EJE METROPOLITANO, MIRANDA - EL LLANITO, MIRANDA - GUARENAS-GUATIRE y MIRANDA - VALLES DEL TUY en Miranda; EL JUNQUITO, HELICOIDE y SAN PEDRO en Distrito Capital; CARMEN DE URIA en La Guaira; TINAQUILLO en Cojedes. El Esequibo se muestra como territorio en reclamación y no forma parte de los núcleos.</p>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-validacion" data-panel="validacion" role="tabpanel" aria-labelledby="tab-validacion" hidden>
+      <section class="card panel panel-validacion">
+        <header class="panel-head">
+          <div>
+            <h2>Validación de datos</h2>
+            <p>Inconsistencias detectadas en la vista actual: totales por sexo, asistencia y pruebas.</p>
+          </div>
+          <button class="btn" type="button" id="btnVerAlertas">Ver núcleos con alertas</button>
+        </header>
+        <div id="resumenAlertas"></div>
+        <div class="alertas" id="alertasDetalle" aria-live="polite"></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-capacidad" data-panel="capacidad" role="tabpanel" aria-labelledby="tab-capacidad" hidden>
+      <section class="card panel panel-capacidad">
+        <header class="panel-head">
+          <div>
+            <h2>Capacidad por núcleo</h2>
+            <p>Ingresa la capacidad de cada núcleo y consulta el cupo restante tras restar los aprobados de las tres pruebas (psicológica + física + médica).</p>
+          </div>
+          <div class="capacidad-totales" id="capacidadTotales"></div>
+        </header>
+        <div class="tabla-scroll">
+          <table class="tabla" id="tablaCapacidad">
+            <thead>
+              <tr class="fila-grupos">
+                <th class="col-nucleo" rowspan="2" scope="col">Núcleo</th>
+                <th rowspan="2" scope="col">Semana</th>
+                <th rowspan="2" scope="col"><button type="button" data-orden="capacidad">Capacidad</button></th>
+                <th colspan="2" scope="colgroup">Aprobados totales (3 pruebas)</th>
+                <th rowspan="2" scope="col">Cupo restante</th>
+                <th rowspan="2" scope="col" class="col-acciones no-print"><span class="oculto">Acciones</span></th>
+              </tr>
+              <tr class="fila-subgrupos">
+                <th scope="col">Femenino</th>
+                <th scope="col">Masculino</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpoCapacidad"></tbody>
+            <tfoot id="pieCapacidad"></tfoot>
+          </table>
+        </div>
+        <p class="nota-tabla">La capacidad se edita directamente en la celda. El cupo restante = Capacidad − (aprobados psicológica + aprobados física + aprobados médica), sumando femenino y masculino.</p>
+      </section>
+    </section>
+
+    <section class="print-only notas-impresion" id="notasImpresion" aria-hidden="true"></section>
+
+    <footer class="pie no-print">
+      <span id="pieEstado">Datos guardados en <code>data/datos.json</code></span>
+      <span class="pie-derecha">Respaldos automáticos en <code>data/respaldos</code> · <button class="enlace" id="btnRespaldos" type="button">Ver respaldos</button></span>
+    </footer>
+  </main>
+
+  <!-- Diálogo: agregar / editar núcleo -->
+  <dialog class="dialogo dialogo-nucleo" id="dlgNucleo">
+    <form id="formNucleo" novalidate>
+      <header class="dialogo-head">
+        <h2 id="tituloNucleo">Agregar núcleo</h2>
+        <button class="btn-icono" type="button" data-cerrar aria-label="Cerrar">✕</button>
+      </header>
+      <div class="dialogo-body">
+        <div class="rejilla-nombre-semana">
+          <label class="campo">
+            <span>Nombre del núcleo</span>
+            <input name="nucleo" type="text" maxlength="100" required autocomplete="off" placeholder="Ej.: MIRANDA - NUEVO NÚCLEO">
+          </label>
+          <label class="campo">
+            <span>Semana</span>
+            <input name="semana" type="number" min="1" max="999" step="1" value="1" required>
+          </label>
+        </div>
+
+        <fieldset class="grupo-campos">
+          <legend>Cifras generales</legend>
+          <div class="rejilla-5">
+            <label class="campo"><span>Pre-inscritos</span><input name="preinscritos" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Convocados</span><input name="convocados" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Asistencia</span><input name="asistencia" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Femenino</span><input name="femenino" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Masculino</span><input name="masculino" type="number" min="0" step="1" value="0"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo-campos">
+          <legend>Formalizados</legend>
+          <div class="rejilla-1">
+            <label class="campo"><span>Total formalizados</span><input name="formalizados" type="number" min="0" step="1" value="0"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo-campos grupo-psico">
+          <legend>Prueba psicológica · por sexo</legend>
+          <div class="rejilla-4">
+            <label class="campo"><span>Aprobados F</span><input name="psico_aprobados_f" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Aprobados M</span><input name="psico_aprobados_m" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Rechazados F</span><input name="psico_rechazados_f" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Rechazados M</span><input name="psico_rechazados_m" type="number" min="0" step="1" value="0"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo-campos grupo-fisico">
+          <legend>Prueba física · por sexo</legend>
+          <div class="rejilla-4">
+            <label class="campo"><span>Aprobados F</span><input name="fisico_aprobados_f" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Aprobados M</span><input name="fisico_aprobados_m" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Rechazados F</span><input name="fisico_rechazados_f" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Rechazados M</span><input name="fisico_rechazados_m" type="number" min="0" step="1" value="0"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo-campos grupo-medico">
+          <legend>Prueba médica · por sexo</legend>
+          <div class="rejilla-4">
+            <label class="campo"><span>Aprobados F</span><input name="medico_aprobados_f" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Aprobados M</span><input name="medico_aprobados_m" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Rechazados F</span><input name="medico_rechazados_f" type="number" min="0" step="1" value="0"></label>
+            <label class="campo"><span>Rechazados M</span><input name="medico_rechazados_m" type="number" min="0" step="1" value="0"></label>
+          </div>
+        </fieldset>
+
+        <p class="mensaje-error" id="errorNucleo" role="alert"></p>
+      </div>
+      <footer class="dialogo-pie">
+        <button class="btn" type="button" data-cerrar>Cancelar</button>
+        <button class="btn btn-primario" type="submit" id="btnGuardarNucleo">Agregar núcleo</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Diálogo: nueva semana -->
+  <dialog class="dialogo" id="dlgSemana">
+    <form id="formSemana" novalidate>
+      <header class="dialogo-head">
+        <h2>Nueva semana</h2>
+        <button class="btn-icono" type="button" data-cerrar aria-label="Cerrar">✕</button>
+      </header>
+      <div class="dialogo-body">
+        <p class="pista">Crea una semana nueva con los mismos núcleos registrados. Puedes empezar con todas las cifras en cero o copiar las cifras de una semana existente.</p>
+        <div class="rejilla-2">
+          <label class="campo">
+            <span>Número de semana</span>
+            <input name="semana" type="number" min="1" max="999" step="1" required>
+          </label>
+          <label class="campo">
+            <span>Datos iniciales</span>
+            <select name="copiarDe"></select>
+          </label>
+        </div>
+        <p class="mensaje-error" id="errorSemana" role="alert"></p>
+      </div>
+      <footer class="dialogo-pie">
+        <button class="btn" type="button" data-cerrar>Cancelar</button>
+        <button class="btn btn-primario" type="submit">Crear semana</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Diálogo: datos del reporte -->
+  <dialog class="dialogo" id="dlgMeta">
+    <form id="formMeta" novalidate>
+      <header class="dialogo-head">
+        <h2>Datos del reporte</h2>
+        <button class="btn-icono" type="button" data-cerrar aria-label="Cerrar">✕</button>
+      </header>
+      <div class="dialogo-body">
+        <label class="campo">
+          <span>Institución</span>
+          <input name="institucion" type="text" maxlength="160" autocomplete="off">
+        </label>
+        <label class="campo">
+          <span>Título del reporte</span>
+          <input name="titulo" type="text" maxlength="240" autocomplete="off">
+        </label>
+        <div class="rejilla-2">
+          <label class="campo">
+            <span>Proceso</span>
+            <input name="proceso" type="text" maxlength="120" autocomplete="off" placeholder="PROCESO ENERO I-2027">
+          </label>
+          <label class="campo">
+            <span>Fecha del reporte</span>
+            <input name="fecha" type="date">
+          </label>
+        </div>
+        <p class="mensaje-error" id="errorMeta" role="alert"></p>
+      </div>
+      <footer class="dialogo-pie">
+        <button class="btn" type="button" data-cerrar>Cancelar</button>
+        <button class="btn btn-primario" type="submit">Guardar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Diálogo: importar -->
+  <dialog class="dialogo dialogo-grande" id="dlgImportar">
+    <form id="formImportar" novalidate>
+      <header class="dialogo-head">
+        <h2>Importar datos</h2>
+        <button class="btn-icono" type="button" data-cerrar aria-label="Cerrar">✕</button>
+      </header>
+      <div class="dialogo-body">
+        <p class="pista">
+          Pega la tabla desde Excel o Google Sheets, o carga un archivo CSV / TSV / JSON.
+          Se reconocen las columnas <strong>SEMANA, NÚCLEO, PRE-INSCRITOS, CONVOCADOS, ASISTENCIA, FORMALIZADOS</strong>,
+          las parejas <strong>PSICOLÓGICA / FÍSICA / MÉDICA</strong> con <strong>APROBADOS / RECHAZADOS</strong> separados en
+          <strong>F (femenino)</strong> y <strong>M (masculino)</strong>, y <strong>FEMENINO / MASCULINO</strong>.
+          Si no hay encabezados, se usa el orden de 19 columnas (sin semana) o 20 columnas (con semana). Los archivos antiguos de 6 columnas siguen funcionando.
+        </p>
+        <div class="rejilla-2">
+          <label class="campo">
+            <span>Semana de destino</span>
+            <input name="semana" id="semanaImportar" type="number" min="1" max="999" step="1" value="1">
+          </label>
+          <label class="campo">
+            <span>Archivo</span>
+            <span class="boton-archivo boton-archivo-inline">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+              Cargar archivo
+              <input type="file" id="archivoImportar" accept=".csv,.tsv,.txt,.json,text/csv,text/plain,application/json">
+            </span>
+          </label>
+        </div>
+        <div class="importar-rejilla">
+          <div class="importar-entrada">
+            <textarea id="textoImportar" rows="10" spellcheck="false" placeholder="SEMANA;NÚCLEO;PRE-INSCRITOS;CONVOCADOS;ASISTENCIA;FORMALIZADOS;PSICO_APR_F;PSICO_APR_M;PSICO_REC_F;PSICO_REC_M;FISICO_APR_F;FISICO_APR_M;FISICO_REC_F;FISICO_REC_M;MEDICO_APR_F;MEDICO_APR_M;MEDICO_REC_F;MEDICO_REC_M;FEMENINO;MASCULINO&#10;1;AMAZONAS;220;34;4;0;0;0;0;0;0;0;0;0;0;0;0;0;3;1&#10;1;ANZOÁTEGUI;1367;228;53;0;0;0;0;0;0;0;0;0;0;0;0;0;17;36"></textarea>
+          </div>
+          <div class="importar-vista">
+            <div class="importar-vista-head">
+              <h3>Vista previa</h3>
+              <span id="resumenImportar" class="contador">Sin datos</span>
+            </div>
+            <div class="importar-preview" id="previewImportar">
+              <p class="vacio">Pega los datos o carga un archivo para ver la vista previa.</p>
+            </div>
+          </div>
+        </div>
+        <fieldset class="modos">
+          <legend>Modo de importación</legend>
+          <label class="modo">
+            <input type="radio" name="modo" value="fusionar" checked>
+            <span><strong>Actualizar coincidentes y agregar nuevos</strong><small>Compara por nombre de núcleo y semana. Ideal para actualizar cifras.</small></span>
+          </label>
+          <label class="modo">
+            <input type="radio" name="modo" value="reemplazar">
+            <span><strong>Reemplazar todos los datos</strong><small>Borra la tabla actual, de todas las semanas, y deja solo lo importado.</small></span>
+          </label>
+        </fieldset>
+        <p class="mensaje-error" id="errorImportar" role="alert"></p>
+      </div>
+      <footer class="dialogo-pie">
+        <button class="btn" type="button" data-cerrar>Cancelar</button>
+        <button class="btn btn-primario" type="submit" id="btnConfirmarImportar" disabled>Importar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Diálogo: respaldos -->
+  <dialog class="dialogo" id="dlgRespaldos">
+    <div class="dialogo-head">
+      <h2>Respaldos automáticos</h2>
+      <button class="btn-icono" type="button" data-cerrar aria-label="Cerrar">✕</button>
+    </div>
+    <div class="dialogo-body">
+      <p class="pista">Antes de cada cambio se guarda una copia de seguridad (como máximo una cada 30 minutos). Al restaurar, los datos actuales se reemplazan por los del respaldo.</p>
+      <div class="lista-respaldos" id="listaRespaldos"></div>
+    </div>
+    <footer class="dialogo-pie">
+      <button class="btn" type="button" data-cerrar>Cerrar</button>
+    </footer>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

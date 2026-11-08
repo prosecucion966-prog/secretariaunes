@@ -1,0 +1,14 @@
+{
+  "name": "control-aspirantes-unes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicación local para cargar, actualizar y reportar los datos de aspirantes por núcleo (UNES).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

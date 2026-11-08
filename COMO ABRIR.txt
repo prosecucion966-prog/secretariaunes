@@ -1,0 +1,22 @@
+CONTROL DE ASPIRANTES - UNES
+============================
+
+1. Haz doble clic en "iniciar.bat".
+2. Espera a que aparezca este mensaje:
+
+      Servidor activo en http://127.0.0.1:3000
+
+3. La aplicacion se abre sola en tu navegador.
+   Si no se abre, copia esta direccion y pegala en el navegador:
+
+      http://127.0.0.1:3000
+
+
+IMPORTANTE
+----------
+- No cierres la ventana negra mientras uses la aplicacion.
+  Esa ventana es el servidor. Si la cierras, la pagina deja de funcionar.
+- Para cerrar la aplicacion: cierra la ventana negra o presiona Ctrl+C.
+- NO abras "public/index.html" directamente. La aplicacion necesita el servidor.
+
+Si aparece un error, ejecuta "diagnostico.bat" y enviame el texto que muestra.
