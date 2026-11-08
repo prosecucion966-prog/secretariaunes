@@ -260,14 +260,24 @@ function calcularAlertasLocalStore(nucleos) {
   return alertas;
 }
 
-function localLeer() {
+async function localLeer() {
   try {
     const bruto = localStorage.getItem(LOCAL_KEY);
     if (bruto) {
       const estado = JSON.parse(bruto);
       if (estado && Array.isArray(estado.nucleos)) return estado;
     }
-  } catch (e) { /* ignora errores de almacenamiento */ }
+    /* Precarga automática desde archivo estático en modo Vercel (sin servidor) */
+    const respuesta = await fetch('/data/datos.json');
+    if (respuesta.ok) {
+      const brutoJson = await respuesta.text();
+      const datos = JSON.parse(brutoJson);
+      if (datos && Array.isArray(datos.nucleos)) {
+        localGuardar(datos);
+        return datos;
+      }
+    }
+  } catch (e) { /* ignora errores de almacenamiento o red */ }
   const vacio = estadoVacio();
   localGuardar(vacio);
   return vacio;
@@ -295,7 +305,7 @@ function exportarArchivo(contenido, nombre, tipo) {
 async function apiLocal(ruta, opciones = {}) {
   const metodo = (opciones.method || 'GET').toUpperCase();
   const cuerpo = opciones.body;
-  const estado = localLeer();
+  const estado = await localLeer();
   const nucleos = estado.nucleos.map((n) => ({ ...n }));
 
   /* GET /api/estado */

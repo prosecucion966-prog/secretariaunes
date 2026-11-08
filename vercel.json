@@ -5,6 +5,7 @@
     { "src": "/venezuela\\.svg", "headers": { "Cache-Control": "public, max-age=31536000, immutable" }, "dest": "/public/venezuela.svg" },
     { "src": "/styles\\.css", "headers": { "Cache-Control": "public, max-age=600" }, "dest": "/public/styles.css" },
     { "src": "/app\\.js", "headers": { "Cache-Control": "public, max-age=600" }, "dest": "/public/app.js" },
+    { "src": "/data/datos\\.json", "headers": { "Cache-Control": "public, max-age=600" }, "dest": "/data/datos.json" },
     { "src": "/(.*)", "dest": "/public/index.html" }
   ],
   "cleanUrls": true,

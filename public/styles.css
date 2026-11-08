@@ -2879,6 +2879,23 @@ th[aria-sort] .flecha {
     flex-basis: 100%;
   }
 
+  .tabla {
+    min-width: 900px;
+    font-size: 12px;
+  }
+
+  .tabla thead th {
+    padding: 8px 10px;
+  }
+
+  .tabla tbody td {
+    padding: 7px 10px;
+  }
+
+  .celda-nucleo input {
+    font-size: 12px;
+  }
+
   .barra-semana {
     padding: 10px 14px;
     align-items: stretch;
@@ -2986,5 +3003,48 @@ th[aria-sort] .flecha {
   .dialogo-pie {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .tabla {
+    min-width: 700px;
+    font-size: 11px;
+  }
+
+  .tabla thead th {
+    padding: 6px 8px;
+  }
+
+  .tabla tbody td {
+    padding: 6px 8px;
+  }
+
+  .celda-nucleo input {
+    font-size: 11px;
+  }
+
+  .capacidad-totales {
+    gap: 16px;
+  }
+
+  .capacidad-totales strong {
+    font-size: 16px;
+  }
+
+  .dialogo {
+    width: 95vw;
+    max-width: 520px;
+    margin: 10px;
+  }
+
+  .rejilla-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rejilla-nombre-semana {
+    grid-template-columns: 1fr;
+  }
+
+  .mini-tabla-importar {
+    min-width: 600px;
   }
 }
