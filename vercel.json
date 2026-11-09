@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "/assets/(.*)", "headers": { "Cache-Control": "public, max-age=31536000, immutable" }, "dest": "/public/assets/$1" },
-    { "src": "/venezuela\\.svg", "headers": { "Cache-Control": "public, max-age=31536000, immutable" }, "dest": "/public/venezuela.svg" },
-    { "src": "/styles\\.css", "headers": { "Cache-Control": "public, max-age=600" }, "dest": "/public/styles.css" },
-    { "src": "/app\\.js", "headers": { "Cache-Control": "public, max-age=600" }, "dest": "/public/app.js" },
-    { "src": "/data/datos\\.json", "headers": { "Cache-Control": "public, max-age=600" }, "dest": "/data/datos.json" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+  "headers": [
+    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/venezuela.svg", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/styles.css", "headers": [{ "key": "Cache-Control", "value": "public, max-age=600" }] },
+    { "source": "/app.js", "headers": [{ "key": "Cache-Control", "value": "public, max-age=600" }] }
+  ],
+  "rewrites": [
+    { "source": "/api/exportar.csv",  "destination": "/api/exportar?formato=csv" },
+    { "source": "/api/exportar.json", "destination": "/api/exportar?formato=json" }
   ],
   "cleanUrls": true,
   "trailingSlash": false
